@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../common/webgl-utils.js"></script>
+    <script src="../../common/initShaders.js"></script>
+    <script src="../../common/MV.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+
+    <title>CAD Modeler</title>
+    <script id="vertex" type="x-vertex/x-shader">
+    attribute vec4 vPosition;
+    uniform mat4 uModel;
+    uniform mat4 uProj;
+    uniform mat4 uView;
+    
+    void main() {
+        gl_Position = uProj * uView * uModel * vPosition;
+    }
+    </script>
+    <script id="fragment" type="x-fragment/x-shader">
+    precision mediump float;
+    uniform vec4 uColor;
+    
+    void main() {
+        gl_FragColor = uColor;
+    }
+    </script>
+
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/ui-lightness/jquery-ui.min.css">
+</head>
+<body>
+    <!-- Yeah, tables -_- -->
+    <table>
+    <tbody>
+        <tr>
+        <td valign="top">
+        <canvas id="gl-canvas" width="512" height="512">
+            Your browser is the worst.
+        </canvas>
+        </td>
+        <td valign="top" width="640px">
+            <div class="list"></div>
+        </td>
+        </tr>
+    </tbody>
+    </table>
+    
+    <div>
+    <button id="aCone">+ Add Cone</button>
+    <button id="aCylinder">+ Add Cylinder</button>
+    <button id="aSphere">+ Add Sphere</button>
+    </div>
+    
+    <div class="spinner">
+    <label for="iterations">Geometry Iterations:</label>
+    <input id="iterations" name="iterations" value="10">
+    </div>
+</body>
+</html>

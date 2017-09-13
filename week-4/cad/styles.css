@@ -1,0 +1,15 @@
+div.slider {
+    margin: 10px 20px;
+}
+
+fieldset {
+    margin-bottom: 20px;
+}
+
+div.spinner {
+    padding-top: 10px;
+}
+
+input#iterations {
+    width: 40px;
+}
