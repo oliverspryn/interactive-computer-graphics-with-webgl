@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../common/webgl-utils.js"></script>
+    <script src="../common/initShaders.js"></script>
+    <script src="../common/MV.js"></script>
+
+    <title>Tessellation</title>
+    <script id="vertex" type="x-vertex/x-shader">
+    attribute vec4 vPosition;
+    attribute vec3 vColor;
+    varying vec3 fColor;
+    
+    void main() {
+        gl_Position = vPosition;
+        fColor = vColor;
+    }
+    </script>
+    <script id="fragment" type="x-fragment/x-shader">
+    precision mediump float;
+    varying vec3 fColor;
+    
+    void main() {
+        gl_FragColor = vec4( fColor, 1.0 );
+    }
+    </script>
+
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <canvas id="gl-canvas" width="512" height="512">
+    Your browser is the worst.
+    </canvas>
+    <div id="controls">
+    <!-- Uncomment if you dare!
+         Basically this will draw the polyline with
+         triangles, but I didn't take the time to 
+         flesh this out too much. ` -->
+    <!-- <label>Line Thickness: <input id="thickness" type="range" min="1" max="19" value="1" step="2" /></label> -->
+    <input type="hidden" id="thickness" value="1" />
+    <label>Color: <input id="color" type="color" /></label>
+    <button id="clear">Clear</button>
+    </div>
+</body>
+</html>
