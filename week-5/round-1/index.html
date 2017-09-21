@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../common/webgl-utils.js"></script>
+    <script src="../../common/initShaders.js"></script>
+    <script src="../../common/MV.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+
+    <title>CAD Modeler</title>
+    <script id="vertex" type="x-vertex/x-shader">
+    //Buffers
+        attribute vec4 vNormal;
+        attribute vec4 vPosition;
+        
+    //Model and view matrices
+        uniform mat4 uModel;
+        uniform mat4 uProj;
+        uniform mat4 uView;
+    
+    //Light properties
+        uniform vec3 ulColor;
+        uniform vec3 ulDirection;
+        
+    //Materials
+        uniform vec4 umAmb;
+        uniform vec4 umDiff;
+        uniform float umShin;
+        uniform vec4 umSpec;
+        
+    //Lights
+        uniform vec4 ulAmb;
+        uniform vec4 ulDiff;
+        uniform vec4 ulPos;
+        uniform vec4 ulSpec;
+        
+    //Down the pipeline
+        varying vec4 color;
+        
+        void main() {
+            /*
+            vec4 amb  = ulAmb * umAmb;
+            vec4 diff = ulDiff * umDiff;
+            vec4 spec = ulSpec * umSpec;
+            
+            vec3 pos = (uModel * vPosition).xyz;
+            vec4 norm0 = vNormal;
+            norm0.w = 0.0;
+            
+            vec3 L = normalize(ulPos.xyz - pos);
+            vec3 E = normalize(-pos);
+            vec3 H = normalize(L + E);
+            vec3 N = normalize(uModel * norm0).xyz;  
+            
+            float kd = max(dot(L, N), 0.0);
+            float ks = pow(max(dot(N, H), 0.0), umShin);
+            vec4 ambient = amb;
+            vec4 diffuse = kd * diff;
+            vec4 specular = ks * spec;
+            
+            if(dot(L, N) -lt 0.0) specular = vec4(0.0, 0.0, 0.0, 1.0);
+            
+            gl_Position = uProj * uView * uModel * vPosition;
+            color = ambient + diffuse + specular;
+            color.a = 1.0;
+            */
+            
+            gl_Position = uProj * uView * uModel * vPosition;
+            
+            vec3 normal = normalize(vec3(vNormal));
+            float nDotL = max(dot(ulDirection, normal), 0.0);
+            vec3 diffuse = ulColor * vec3(1.0, 0.0, 0.0) * nDotL;
+            color = vec4(diffuse, 0.0);
+        }
+    </script>
+    <script id="fragment" type="x-fragment/x-shader">
+        precision mediump float;
+        uniform vec4 uColor;
+        varying vec4 color;
+        
+        void main() {
+         gl_FragColor = color;
+        }
+    </script>
+
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/ui-lightness/jquery-ui.min.css">
+</head>
+<body>
+    <!-- Yeah, tables -_- -->
+    <table>
+      <tbody>
+        <tr>
+          <td valign="top">
+          <canvas id="gl-canvas" width="512" height="512">
+            Your browser is the worst.
+          </canvas>
+          </td>
+          <td valign="top" width="640px">
+            <div class="list"></div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div>
+    <button id="aCone">+ Add Cone</button>
+    <button id="aCylinder">+ Add Cylinder</button>
+    <button id="aSphere">+ Add Sphere</button>
+    </div>
+    
+    <div class="spinner">
+    <label for="iterations">Geometry Iterations:</label>
+    <input id="iterations" name="iterations" value="10">
+    </div>
+</body>
+</html>
