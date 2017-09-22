@@ -1,0 +1,23 @@
+body {
+    padding: 10px;
+}
+
+div.slider {
+    margin: 10px 20px;
+}
+
+fieldset {
+    margin-bottom: 20px;
+}
+
+div.controls {
+    padding-top: 10px;
+}
+
+div.panel {
+    margin-top: 20px;
+}
+
+input#iterations {
+    width: 40px;
+}

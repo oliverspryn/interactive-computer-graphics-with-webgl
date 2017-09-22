@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../common/webgl-utils.js"></script>
+    <script src="../../common/initShaders.js"></script>
+    <script src="../../common/MV.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+
+    <title>CAD Modeler</title>
+    <script id="vertex" type="x-vertex/x-shader">
+    //Buffers
+        attribute vec4 vNormal;
+        attribute vec4 vPosition;
+        
+    //Model and view matrices
+        uniform mat4 uModel;
+        uniform mat4 uNorm;
+        uniform mat4 uProj;
+        uniform mat4 uView;
+        
+    //Materials
+        uniform vec4 umAmb;
+        uniform vec4 umDiff;
+        uniform float umShin;
+        uniform vec4 umSpec;
+        
+    //Lights
+        uniform vec4 ulAmb[5];
+        uniform vec4 ulDiff[5];
+        uniform vec4 ulPos;
+        uniform vec4 ulSpec[5];
+        
+    //Color
+        uniform vec4 uColor;
+        varying vec4 color;
+        
+    //Pass through
+        varying vec4 amb;
+        varying vec4 diff;
+        varying vec4 pos;
+        varying vec4 spec;
+        
+        varying vec3 N;
+        varying vec3 L;
+        varying vec3 V;
+        
+        void main() {      
+            for(int i = 0; i < 5; i++) {
+                amb = amb + ulAmb[i];
+                diff = diff + ulDiff[i];
+                spec = spec + ulSpec[i]; 
+            }
+                                    
+            amb = amb * umAmb;
+            diff = diff * umDiff;
+            pos = ulPos; // You know what? The lights will all move as a group!
+            spec = spec * umSpec;
+            
+            mat4 mv = uView * uModel;
+            vec4 P = mv * vPosition;
+            
+            N = mat3(mv) * vNormal.xyz;
+            L = normalize(pos.xyz) - P.xyz;
+            V = -P.xyz;
+            
+            gl_Position = uProj * uView * uModel * vPosition;
+            color = uColor;
+        }
+    </script>
+    <script id="fragment" type="x-fragment/x-shader">
+        precision mediump float;
+        varying vec4 color;
+        
+        varying vec4 amb;
+        varying vec4 diff;
+        varying vec4 spec;
+        
+        varying vec3 N;
+        varying vec3 L;
+        varying vec3 V;
+        
+        void main() {
+            /*gl_FragColor = color;*/
+            
+            vec3 diffuse_albedo = vec3(0.5, 0.2, 0.7);
+            vec3 specular_albedo = vec3(0.7, 0.7, 0.7);
+            float shininess = 128.0;
+            
+            vec3 nN = normalize(N);
+            vec3 nL = normalize(L);
+            vec3 nV = normalize(V);
+            
+            vec3 R = reflect(-nL, nN);
+            vec3 diffuse = diff.xyz * max(dot(nN, nL), 0.0);
+            vec3 specular = spec.xyz * pow(max(dot(R, nV), 0.0), shininess);
+            
+            gl_FragColor = vec4(amb.xyz + diffuse + specular, 1.0);
+        }
+    </script>
+
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/ui-lightness/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+</head>
+<body>
+<p>Can't see your geometry? Try adding some lights! Each light can be turned off by sliding each fo the RGBA values down to 0. There is no switch to do all of this for you.</p>
+<div class="row">
+    <div class="col-md-7">
+    <canvas id="gl-canvas" width="512" height="512">
+        Your browser is the worst.
+    </canvas>
+    </div>
+    <div class="col-md-5">
+    <ul class="list-group objects">
+    </ul>
+    
+    <div class="controls">
+        <button class="add btn btn-default" data-category="geometry" data-create="cone" data-name="Cone">+ Cone</button>
+        <button class="add btn btn-default" data-category="geometry" data-create="cylinder" data-name="Cylinder">+ Cylinder</button>
+        <button class="add btn btn-default" data-category="geometry" data-create="sphere" data-name="Sphere">+ Sphere</button>
+        <button class="add add-light btn btn-primary" data-category="light" data-create="light" data-name="Light">+ Light (Max 5)</button>
+    </div>
+    
+    <div class="controls spinner">
+        <label for="iterations">Geometry Iterations:</label>
+        <input id="iterations" name="iterations" value="10">
+    </div>
+    </div>
+</div>
+
+<div class="panel panel-default" style="display: none;">
+    <div class="panel-heading" id="object-type"></div>
+    <div class="panel-body">
+    <div class="row">
+        <div class="col-md-4">
+        <div class="control-list list-group">
+            <button class="geometry list-group-item translate">Translate</button>
+            <button class="geometry list-group-item rotate">Rotate</button>
+            <button class="geometry list-group-item scale">Scale</button>
+            <button class="geometry list-group-item material material-ambient">Material Ambient</button>
+            <button class="geometry list-group-item material material-diffuse">Material Diffuse</button>
+            <button class="geometry list-group-item material material-shininess">Material Shininess</button>
+            <button class="geometry list-group-item material material-specular">Material Specular</button>
+            <button class="light light-ambient list-group-item">Light Ambient</button>
+            <button class="light light-diffuse list-group-item">Light Diffuse</button>
+            <button class="light light-position list-group-item">Light Position</button>
+            <button class="light light-specular list-group-item">Light Specular</button>
+        </div>
+        </div>
+        <div class="col-md-8 sliders">
+        <div id="group1">
+            <label for="slider1" id="label1"></label>
+            <input id="slider1" type="range"/>
+        </div>
+        
+        <div id="group2">
+            <label for="slider2" id="label2"></label>
+            <input id="slider2" type="range"/>
+        </div>
+        
+        <div id="group3">
+            <label for="slider3" id="label3"></label>
+            <input id="slider3" type="range"/>
+        </div>
+        
+        <div id="group4">
+            <label for="slider4" id="label4"></label>
+            <input id="slider4" type="range"/>
+        </div>
+        </div>
+    </div>
+    </div>
+</div>
+</body>
+</html>
